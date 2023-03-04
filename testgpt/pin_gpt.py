@@ -2,7 +2,7 @@ import os
 import openai
 
 openai.organization = "org-ZZjbb7CBD0aztOHPV7hrrhMR"
-openai.api_key = "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"
+openai.api_key = "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"
 
 print(1)
 
