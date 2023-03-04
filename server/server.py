@@ -5,6 +5,7 @@ import tornado.web
 import yaml
 import os
 import openai
+import json
 
 class Config:
     def __init__(self, filename):
@@ -16,10 +17,14 @@ class MainHandler(tornado.web.RequestHandler):
         self.config = config
 
     def get(self):
+        self.render('frontend.html')
+
+    def post(self):
         openai.organization = self.config.settings['openai_organization']
         openai.api_key = self.config.settings['openai_api_key']
 
-        question = self.get_argument('question')
+        data = json.loads(self.request.body.decode('utf-8'))
+        question = data['question']
 
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -28,8 +33,14 @@ class MainHandler(tornado.web.RequestHandler):
             messages=[{ "role": "user", "content": question}]
         )
 
-        print(completion)
-        self.write(completion)
+        answer = completion.choices[0].message.content
+
+        response = {
+            'answer': answer
+        }
+
+        self.set_header('Content-Type', 'application/json')
+        self.write(json.dumps(response))
 
 
 config = Config(os.path.join(os.path.dirname(__file__), "openai_gpt_key.yaml"))
