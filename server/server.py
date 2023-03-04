@@ -28,8 +28,8 @@ class MainHandler(tornado.web.RequestHandler):
 
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            temperature=0.2,
-            max_tokens=20,
+            #  temperature=0.2,
+            #  max_tokens=20,
             messages=[{ "role": "user", "content": question}]
         )
 
