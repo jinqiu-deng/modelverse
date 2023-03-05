@@ -69,25 +69,26 @@
 
 <script>
   function submitQuestion() {
-    var inputMessage = document.getElementById("input").value;
-
-    const data = JSON.stringify({ question: inputMessage });
     //const url = "http://localhost:8080";
     const url = 'http://52.53.130.54:8080'
 
-    document.getElementById("question").innerHTML = inputMessage;
-    document.getElementById("answer").innerHTML = '请耐心等待1分钟，正在思考您的提问：' + inputMessage;
+    const md = new markdownit();
+    var inputMessage = document.getElementById("input").value;
+    var inputMessageMD = md.render(inputMessage)
+
+    document.getElementById("question").innerHTML = inputMessageMD;
+    document.getElementById("answer").innerHTML = '请耐心等待1分钟，正在思考您的提问：\n' + inputMessageMD;
 
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", url);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        const md = new markdownit();
         var answer = JSON.parse(xhttp.responseText).answer;
         document.getElementById("answer").innerHTML = md.render(answer);
       }
     };
+    var data = JSON.stringify({ question: inputMessage });
     xhttp.send(data);
   }
 </script>
