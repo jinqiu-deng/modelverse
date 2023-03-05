@@ -71,10 +71,11 @@
     var inputMessage = document.getElementById("input").value;
 
     const data = JSON.stringify({ question: inputMessage });
-    //const url = "http://localhost:8080";
-    const url = 'http://52.53.130.54:8080'
+    const url = "http://localhost:8080";
+    //const url = 'http://52.53.130.54:8080'
 
     document.getElementById("question").innerHTML = inputMessage;
+    document.getElementById("answer").innerHTML = '请耐心等待1分钟，正在思考您的提问：' + inputMessage;
 
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", url);
