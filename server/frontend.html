@@ -5,16 +5,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <style>
+    .panel-heading {
+      background-color: #f5f5f5;
+      color: #333;
+      font-size: 24px;
+    }
+    .panel-body {
+      background-color: #fdfdfd;
+    }
+  </style>
 </head>
 <body>
 
-
 <div class="container">
   <div class="row">
     <div class="col-sm-12">
-      <h3>您的提问:</h3>
-      <p id='question'></p>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">您的提问:</h3>
+        </div>
+        <div id="question" class="panel-body">您的提问将展示在这里</div>
+      </div>
     </div>
   </div>
 </div>
@@ -22,44 +34,60 @@
 <div class="container">
   <div class="row">
     <div class="col-sm-12">
-      <h3>GPT的回答:</h3>
-      <p id='answer'></p>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">ChatGPT的回答:</h3>
+        </div>
+        <div id="answer" class="panel-body">ChatGPT的回答将展示在这里</div>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="container">
   <div class="row">
-    <div class="col-sm-11">
-      <h3>请输入新的问题:</h3>
-        <input type="text" id="input" name="input"><br><br>
-    </div>
-    <div class="col-sm-1">
-        <button onclick="myFunction()">提交问题</button>
+    <div class="col-sm-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">请输入新的问题:</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-group">
+            <textarea type="text" class="form-control" rows="3" id="input" name="input"></textarea>
+          </div>
+          <div class="row">
+            <div class="col-sm-12 text-right">
+              <button class="btn btn-primary" onclick="submitQuestion()">提交问题</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-    function myFunction() {
-        var inputMessage = document.getElementById('input').value;;
+  function submitQuestion() {
+    var inputMessage = document.getElementById("input").value;
 
-        const data = JSON.stringify({ 'question': inputMessage}); // Replace with your data
-        <!-- const url = 'http://52.53.130.54:8080' -->
-        const url = 'http://localhost:8080'
-        document.getElementById("question").innerHTML = inputMessage
+    const data = JSON.stringify({ question: inputMessage });
+    const url = "http://localhost:8080";
+    <!-- const url = 'http://52.53.130.54:8080' -->
 
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("POST", url)
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                // Typical action to be performed when the document is ready:
-                document.getElementById("answer").innerHTML = JSON.parse(xhttp.responseText).answer;
-            }
-        };
-        xhttp.send(data);
+    document.getElementById("question").innerHTML = inputMessage;
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", url);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        document.getElementById("answer").innerHTML = JSON.parse(
+          xhttp.responseText
+        ).answer;
       }
+    };
+    xhttp.send(data);
+  }
 </script>
 
 </body>
