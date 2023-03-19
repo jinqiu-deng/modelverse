@@ -40,22 +40,23 @@ class MainHandler(tornado.web.RequestHandler):
         openai.api_key = self.config.settings['openai_api_key']
 
         data = json.loads(self.request.body.decode('utf-8'))
-        question = data['question']
-        logging.info('Received question "%s" from %s', question, self.request.remote_ip)
+        logging.info('Received question "%s" from %s', data, self.request.remote_ip)
 
-        completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            #  temperature=0.2,
-            #  max_tokens=20,
-            messages=[{ "role": "user", "content": question}]
-        )
+        # Filter out properties that are not defined in data
+        chat_completion_args = {
+            key: value for key, value in data.items() if key in {
+                'model', 'messages', 'temperature', 'top_p', 'n', 'max_tokens',
+                'presence_penalty', 'frequency_penalty', 'user', 'logit_bias'}
+        }
+
+        completion = openai.ChatCompletion.create(**chat_completion_args)
 
         answer = completion.choices[0].message.content
-        logging.info('Generated answer "%s" for question "%s" from %s', answer, question, self.request.remote_ip)
-        logging.info('Generated completion "%s" for question "%s" from %s', completion, question, self.request.remote_ip)
+        logging.info('Generated answer "%s" for question "%s" from %s', answer, data['messages'][-1]['content'], self.request.remote_ip)
+        logging.info('Generated completion "%s" for question "%s" from %s', completion, data, self.request.remote_ip)
 
         response = {
-            'answer': answer
+            'completion': completion.to_dict()
         }
 
         self.set_header('Content-Type', 'application/json')

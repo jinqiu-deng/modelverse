@@ -83,13 +83,30 @@
     var xhttp = new XMLHttpRequest();
     xhttp.open("POST", url);
     xhttp.setRequestHeader("Content-Type", "application/json");
+
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        var answer = JSON.parse(xhttp.responseText).answer;
-        document.getElementById("answer").innerHTML = md.render(answer);
+        var response = JSON.parse(xhttp.responseText);
+        var completion = response.completion;
+        var messages = completion.choices[0].message.messages;
+        var lastMessage = messages[messages.length - 1];
+        var content = lastMessage.content;
+
+        document.getElementById("answer").innerHTML = md.render(content);
       }
     };
-    var data = JSON.stringify({ question: inputMessage });
+
+    var data = JSON.stringify({
+      model: 'gpt-3.5-turbo',
+      messages: [{role: 'user', content: inputMessage}],
+      temperature: 1,
+      top_p: 1,
+      n: 1,
+      presence_penalty: 0,
+      frequency_penalty: 0,
+      user: 'browser',
+      logit_bias: {}
+    });
     xhttp.send(data);
   }
 </script>
