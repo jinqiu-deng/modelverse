@@ -88,9 +88,7 @@
       if (this.readyState == 4 && this.status == 200) {
         var response = JSON.parse(xhttp.responseText);
         var completion = response.completion;
-        var messages = completion.choices[0].message.messages;
-        var lastMessage = messages[messages.length - 1];
-        var content = lastMessage.content;
+        var content = completion.choices[0].message.content;
 
         document.getElementById("answer").innerHTML = md.render(content);
       }
