@@ -96,14 +96,7 @@
 
     var data = JSON.stringify({
       model: 'gpt-3.5-turbo',
-      messages: [{role: 'user', content: inputMessage}],
-      temperature: 1,
-      top_p: 1,
-      n: 1,
-      presence_penalty: 0,
-      frequency_penalty: 0,
-      user: 'browser',
-      logit_bias: {}
+      messages: [{role: 'user', content: inputMessage}]
     });
     xhttp.send(data);
   }
