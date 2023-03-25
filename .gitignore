@@ -3,6 +3,7 @@
 .DS_Store
 data/
 nohup.out
+*logs*
 
 
 # Byte-compiled / optimized / DLL files
