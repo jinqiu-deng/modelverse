@@ -2,6 +2,7 @@
 *backup*
 .DS_Store
 data/
+nohup.out
 
 
 # Byte-compiled / optimized / DLL files
