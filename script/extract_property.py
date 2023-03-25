@@ -41,7 +41,7 @@ prompt_class = '''
         }
 
         long sku_id;
-        float 总重量（g）; // 单位：g, 所有商品的重量总和
+        float 总重量（g）; // 单位：g, 必须是所有商品的重量总和，是一个以克为单位的浮点型数字
         string 品牌;
         string 产地;
         类别_enum 类别;
