@@ -3,6 +3,7 @@ import json
 from time import sleep
 import csv
 import os
+import re
 import pandas as pd
 
 url = "http://52.53.130.54:8080/"
@@ -72,7 +73,6 @@ for index, row in data.iterrows():
 
         转化要求：
         1. 不要使用上面sku描述之外的信息
-        2. 如果变量是enum类型，必须严格遵守enum枚举值定义，禁止使用未定义枚举值
         3. 没有值填null
 
         计量单位关系：
@@ -87,6 +87,18 @@ for index, row in data.iterrows():
         # Make a request to the API to generate the JSON for the SKU
         request_data = {'model': "gpt-3.5-turbo", 'temperature': 0, 'messages': [{'role': "user", 'content': message}]}
         response = requests.post(url=url, json=request_data).text
+
+        # 用正则表达式找到 "总重量（g）" 的值，防止出现计算公式
+        pattern = r'"总重量（g）": "(.+?)"'
+        match = re.search(pattern, response)
+        formula = match.group(1) if match else None
+
+        # 计算公式的值
+        if formula:
+            print(formula)
+            result = eval(formula)
+            # 将计算结果替换回原字符串
+            response = re.sub(pattern, f'"总重量（g）": {result}', response)
 
         response_json = json.loads(response)
         batch_sku_info = response_json['completion']['choices'][0]['message']['content']
