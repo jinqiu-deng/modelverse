@@ -88,24 +88,25 @@ for index, row in data.iterrows():
         request_data = {'model': "gpt-3.5-turbo", 'temperature': 0, 'messages': [{'role': "user", 'content': message}]}
         response = requests.post(url=url, json=request_data).text
 
-        # 用正则表达式找到 "总重量（g）" 的值，防止出现计算公式
-        pattern = r'"总重量（g）": "(.+?)"'
-        match = re.search(pattern, response)
-        formula = match.group(1) if match else None
-
-        # 计算公式的值
-        if formula:
-            print(formula)
-            result = eval(formula)
-            # 将计算结果替换回原字符串
-            response = re.sub(pattern, f'"总重量（g）": {result}', response)
-
         response_json = json.loads(response)
         batch_sku_info = response_json['completion']['choices'][0]['message']['content']
 
         print(batch_sku_info)
 
-        batch_sku_info_json = json.loads(batch_sku_info)
+        # 定义替换函数，该函数将计算公式的结果替换回原始字符串
+        def replace_with_result(match):
+            formula = match.group(1)
+            result = eval(formula)
+            return str(result)
+
+        # 使用 re.sub() 函数将计算结果替换回原始字符串
+        pattern = r'(\d+ \* \d+)'
+        batch_sku_info_updated = re.sub(pattern, replace_with_result, batch_sku_info)
+
+        if batch_sku_info_updated != batch_sku_info:
+            print('eval fomula' + batch_sku_info_updated)
+
+        batch_sku_info_json = json.loads(batch_sku_info_updated)
 
         # Loop through array
         for sku_info_json in batch_sku_info_json:
