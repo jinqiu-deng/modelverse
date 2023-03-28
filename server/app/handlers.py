@@ -28,6 +28,11 @@ class MainHandler(tornado.web.RequestHandler):
 
     async def post(self):
         async with self.key_lock:
+            # Log the total number of requests under processing and the number for each org_id
+            total_requests = sum(self.key_state.values())
+            logging.info('Total requests under processing: %d', total_requests)
+            for org_key, org_requests in self.key_state.items():
+                logging.info('Requests under processing for org_id %s: %d', org_key, org_requests)
 
             # Select the key with the least number of under processing requests
             selected_key_index = min(self.key_state, key=self.key_state.get)
