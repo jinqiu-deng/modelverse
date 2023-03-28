@@ -10,7 +10,8 @@ import logging
 import datetime
 from logging.handlers import RotatingFileHandler
 import pytz
-
+from tornado.platform.asyncio import AsyncIOMainLoop
+from threading import Lock
 
 class Config:
     def __init__(self, filename):
@@ -27,17 +28,32 @@ class BeijingFormatter(logging.Formatter):
         return dt.astimezone(self.tz).strftime(datefmt)
 
 class MainHandler(tornado.web.RequestHandler):
-    def initialize(self, config):
+    def initialize(self, config, key_lock):
         self.config = config
+        self.key_lock = key_lock
+        self.key_index = 0
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+
+    def options(self, *args, **kwargs):
+        self.set_status(204)
+        self.finish()
 
     def get(self):
         logging.info('Received GET request from %s', self.request.remote_ip)
         self.render('frontend.html')
 
-    def post(self):
+    async def post(self):
         logging.info('Received POST request from %s', self.request.remote_ip)
-        openai.organization = self.config.settings['openai_organization']
-        openai.api_key = self.config.settings['openai_api_key']
+
+        with self.key_lock:
+            openai.organization = self.config.settings['organizations'][self.key_index]['id']
+            openai.api_key = self.config.settings['organizations'][self.key_index]['key']
+
+            self.key_index = (self.key_index + 1) % len(self.config.settings['organizations'])
 
         data = json.loads(self.request.body.decode('utf-8'))
         logging.info('Received question "%s" from %s', data, self.request.remote_ip)
@@ -64,9 +80,11 @@ class MainHandler(tornado.web.RequestHandler):
 
 config = Config(os.path.join(os.path.dirname(__file__), "openai_gpt_key.yaml"))
 
+key_lock = Lock()
+
 def make_app():
     return tornado.web.Application([
-        (r"/", MainHandler, dict(config=config)),
+        (r"/", MainHandler, dict(config=config, key_lock=key_lock)),
     ])
 
 if __name__ == "__main__":
