@@ -6,21 +6,7 @@ import os
 import re
 import pandas as pd
 
-url = "http://52.53.130.54:8083/"
-
-#  input_file_name =  '../data/apple_sku_name.csv'
-#  output_file_name = '../data/apple_sku_info.csv'
-
-#  prompt_class = '''
-#      public class sku {
-#          string 品牌;
-#          string 产地;
-#          int 个数（个）; // 单位：个
-#          int 大小（mm）; // 单位：毫米
-#          float 总重量（kg）; // 单位：千克
-#          float 单果重量（g）; // 单位：克
-#      }
-#  '''
+url = "http://52.53.130.54:8080/"
 
 input_file_name =  '../data/melon_seed_sku_name.csv'
 output_file_name = '../data/melon_seed_sku_info.csv'
