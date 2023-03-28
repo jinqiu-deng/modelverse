@@ -1,14 +1,17 @@
 import tornado.web
+from tornado.web import RequestHandler
+import asyncio
 import json
 import logging
 import openai
 import os
+from .utils import CustomOpenAIClient
 
 class MainHandler(tornado.web.RequestHandler):
-    def initialize(self, config, key_lock):
+    def initialize(self, config, key_lock, key_state):
         self.config = config
+        self.key_state = key_state
         self.key_lock = key_lock
-        self.key_index = 0
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -24,32 +27,27 @@ class MainHandler(tornado.web.RequestHandler):
         self.render(os.path.join(os.path.dirname(__file__), '..', 'templates', 'chatbot.html'))
 
     async def post(self):
-        logging.info('Received POST request from %s', self.request.remote_ip)
+        async with self.key_lock:
+            organization_id = self.config.settings['organizations'][self.key_state['index']]['id']
+            api_key = self.config.settings['organizations'][self.key_state['index']]['key']
+            custom_openai_client = CustomOpenAIClient(organization_id, api_key)
 
-        with self.key_lock:
-            openai.organization = self.config.settings['organizations'][self.key_index]['id']
-            openai.api_key = self.config.settings['organizations'][self.key_index]['key']
+            self.key_state['index'] = (self.key_state['index'] + 1) % len(self.config.settings['organizations'])
 
-            self.key_index = (self.key_index + 1) % len(self.config.settings['organizations'])
+        request_body_json = json.loads(self.request.body.decode('utf-8'))
 
-        data = json.loads(self.request.body.decode('utf-8'))
-        logging.info('Received question "%s" from %s', data, self.request.remote_ip)
+        logging.info('Sending question "%s" from %s using org_id %s',
+                     request_body_json, self.request.remote_ip, custom_openai_client.organization_id)
 
-        # Filter out properties that are not defined in data
-        chat_completion_args = {
-            key: value for key, value in data.items() if key in {
-                'model', 'messages', 'temperature', 'top_p', 'n', 'max_tokens',
-                'presence_penalty', 'frequency_penalty', 'user', 'logit_bias'}
-        }
+        completion = await custom_openai_client.create_chat_completion(request_body_json)
 
-        completion = openai.ChatCompletion.create(**chat_completion_args)
+        answer = completion['choices'][0]['message']['content']
 
-        answer = completion.choices[0].message.content
-        logging.info('Generated answer "%s" for question "%s" from %s', answer, data['messages'][-1]['content'], self.request.remote_ip)
-        logging.info('Generated completion "%s" for question "%s" from %s', completion, data, self.request.remote_ip)
+        logging.info('Generated completion "%s" for question "%s" from %s using org_id %s',
+                     completion, request_body_json, self.request.remote_ip, custom_openai_client.organization_id)
 
         response = {
-            'completion': completion.to_dict()
+            'completion': completion
         }
 
         self.set_header('Content-Type', 'application/json')

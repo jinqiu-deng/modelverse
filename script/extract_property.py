@@ -6,7 +6,7 @@ import os
 import re
 import pandas as pd
 
-url = "http://52.53.130.54:8080/"
+url = "http://52.53.130.54:8083/"
 
 #  input_file_name =  '../data/apple_sku_name.csv'
 #  output_file_name = '../data/apple_sku_info.csv'
@@ -25,7 +25,7 @@ url = "http://52.53.130.54:8080/"
 input_file_name =  '../data/melon_seed_sku_name.csv'
 output_file_name = '../data/melon_seed_sku_info.csv'
 
-sku_batch_count = 5
+sku_batch_count = 2
 
 prompt_class = '''
     public class sku {
