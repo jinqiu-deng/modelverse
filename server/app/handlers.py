@@ -10,8 +10,8 @@ from .utils import CustomOpenAIClient
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, config, key_lock, key_state):
         self.config = config
-        self.key_state = key_state
         self.key_lock = key_lock
+        self.key_state = key_state
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -28,11 +28,14 @@ class MainHandler(tornado.web.RequestHandler):
 
     async def post(self):
         async with self.key_lock:
-            organization_id = self.config.settings['organizations'][self.key_state['index']]['id']
-            api_key = self.config.settings['organizations'][self.key_state['index']]['key']
-            custom_openai_client = CustomOpenAIClient(organization_id, api_key)
 
-            self.key_state['index'] = (self.key_state['index'] + 1) % len(self.config.settings['organizations'])
+            # Select the key with the least number of under processing requests
+            selected_key_index = min(self.key_state, key=self.key_state.get)
+            self.key_state[selected_key_index] += 1
+
+            organization_id = self.config.settings['organizations'][selected_key_index]['id']
+            api_key = self.config.settings['organizations'][selected_key_index]['key']
+            custom_openai_client = CustomOpenAIClient(organization_id, api_key)
 
         request_body_json = json.loads(self.request.body.decode('utf-8'))
 
@@ -52,3 +55,7 @@ class MainHandler(tornado.web.RequestHandler):
 
         self.set_header('Content-Type', 'application/json')
         self.write(json.dumps(response))
+
+        # Decrement the count of under processing requests for the selected key
+        async with self.key_lock:
+            self.key_state[selected_key_index] -= 1

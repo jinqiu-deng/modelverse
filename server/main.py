@@ -9,7 +9,7 @@ import asyncio
 
 config = Config(os.path.join(os.path.dirname(__file__), "openai_gpt_key.yaml"))
 key_lock = asyncio.Lock()
-key_state = {'index': 0}
+key_state = {i: 0 for i in range(len(config.settings['organizations']))}
 
 def make_app():
     return Application([
