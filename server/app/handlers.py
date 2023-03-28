@@ -1,31 +1,8 @@
-# coding=utf-8
-
-import tornado.ioloop
 import tornado.web
-import yaml
-import os
-import openai
 import json
 import logging
-import datetime
-from logging.handlers import RotatingFileHandler
-import pytz
-from tornado.platform.asyncio import AsyncIOMainLoop
-from threading import Lock
-
-class Config:
-    def __init__(self, filename):
-        with open(filename, 'r') as f:
-            self.settings = yaml.load(f, Loader=yaml.FullLoader)
-
-class BeijingFormatter(logging.Formatter):
-    def __init__(self, fmt=None, datefmt=None, tz=None):
-        super().__init__(fmt, datefmt)
-        self.tz = tz or pytz.timezone('Asia/Shanghai')
-
-    def formatTime(self, record, datefmt=None):
-        dt = datetime.datetime.fromtimestamp(record.created, tz=pytz.utc)
-        return dt.astimezone(self.tz).strftime(datefmt)
+import openai
+import os
 
 class MainHandler(tornado.web.RequestHandler):
     def initialize(self, config, key_lock):
@@ -44,7 +21,7 @@ class MainHandler(tornado.web.RequestHandler):
 
     def get(self):
         logging.info('Received GET request from %s', self.request.remote_ip)
-        self.render('frontend.html')
+        self.render(os.path.join(os.path.dirname(__file__), '..', 'templates', 'chatbot.html'))
 
     async def post(self):
         logging.info('Received POST request from %s', self.request.remote_ip)
@@ -77,31 +54,3 @@ class MainHandler(tornado.web.RequestHandler):
 
         self.set_header('Content-Type', 'application/json')
         self.write(json.dumps(response))
-
-config = Config(os.path.join(os.path.dirname(__file__), "openai_gpt_key.yaml"))
-
-key_lock = Lock()
-
-def make_app():
-    return tornado.web.Application([
-        (r"/", MainHandler, dict(config=config, key_lock=key_lock)),
-    ])
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-
-    log_dir = os.path.join(os.path.dirname(__file__), 'logs')
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    log_file = os.path.join(log_dir, 'server.log')
-
-    formatter = BeijingFormatter('%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S %z')
-    file_handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=100, encoding="utf-8")
-    file_handler.setFormatter(formatter)
-
-    logging.getLogger('').addHandler(file_handler)
-
-    app = make_app()
-    app.listen(8080, address="0.0.0.0")
-    logging.info('Started server')
-    tornado.ioloop.IOLoop.current().start()
