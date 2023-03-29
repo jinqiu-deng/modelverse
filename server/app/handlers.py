@@ -26,41 +26,73 @@ class MainHandler(tornado.web.RequestHandler):
         logging.info('Received GET request from %s', self.request.remote_ip)
         self.render(os.path.join(os.path.dirname(__file__), '..', 'templates', 'chatbot.html'))
 
-    async def post(self):
+
+    async def decrement_key_state(self, group_name, selected_key_index):
         async with self.key_lock:
-            # Log the total number of requests under processing and the number for each org_id
-            total_requests = sum(self.key_state.values())
-            logging.info('Total requests under processing: %d', total_requests)
-            for org_key, org_requests in self.key_state.items():
-                logging.info('Requests under processing for org_id %s: %d', org_key, org_requests)
+            self.key_state[group_name][selected_key_index] -= 1
 
-            # Select the key with the least number of under processing requests
-            selected_key_index = min(self.key_state, key=self.key_state.get)
-            self.key_state[selected_key_index] += 1
+    async def post(self):
+        request_body_json = json.loads(self.request.body.decode('utf-8'))
 
-            organization_id = self.config.settings['organizations'][selected_key_index]['id']
-            api_key = self.config.settings['organizations'][selected_key_index]['key']
+        # Set the group_name to 'default_group' if it's not provided in the request
+        group_name = request_body_json.get('group_name', 'default_group')
+
+        for group in self.config.settings['groups']:
+            if group['name'] == group_name:
+                selected_group = group
+                break
+
+        if not selected_group:
+            self.set_status(400)
+            self.write({"error": "Invalid group_name provided"})
+            return
+
+        async with self.key_lock:
+            logging.info('Current key_state: %s', self.key_state)
+            selected_key_index = min(self.key_state[group_name], key=self.key_state[group_name].get)
+            self.key_state[group_name][selected_key_index] += 1
+
+            organization_id = selected_group['organizations'][selected_key_index]['id']
+            api_key = selected_group['organizations'][selected_key_index]['key']
             custom_openai_client = CustomOpenAIClient(organization_id, api_key)
 
         request_body_json = json.loads(self.request.body.decode('utf-8'))
 
-        logging.info('Sending question "%s" from %s using org_id %s',
-                     request_body_json, self.request.remote_ip, custom_openai_client.organization_id)
+        logging.info('Sending question "%s" from %s using org_id %s in group %s',
+                     request_body_json,
+                     self.request.remote_ip,
+                     custom_openai_client.organization_id,
+                     group_name)
 
-        completion = await custom_openai_client.create_chat_completion(request_body_json)
+        try:
+            request_body_json = json.loads(self.request.body.decode('utf-8'))
 
-        answer = completion['choices'][0]['message']['content']
+            allowed_properties = {
+                'model', 'messages', 'temperature', 'top_p', 'n', 'max_tokens',
+                'presence_penalty', 'frequency_penalty', 'user', 'logit_bias'
+            }
 
-        logging.info('Generated completion "%s" for question "%s" from %s using org_id %s',
-                     completion, request_body_json, self.request.remote_ip, custom_openai_client.organization_id)
+            filtered_request_body_json = {k: v for k, v in request_body_json.items() if k in allowed_properties}
 
-        response = {
-            'completion': completion
-        }
+            # Use filtered_request_body_json for further processing
+            completion = await custom_openai_client.create_chat_completion(filtered_request_body_json)
 
-        self.set_header('Content-Type', 'application/json')
-        self.write(json.dumps(response))
+            answer = completion['choices'][0]['message']['content']
 
-        # Decrement the count of under processing requests for the selected key
-        async with self.key_lock:
-            self.key_state[selected_key_index] -= 1
+            logging.info('Generated completion "%s" for question "%s" from %s using org_id %s in group %s',
+                         completion,
+                         request_body_json,
+                         self.request.remote_ip,
+                         custom_openai_client.organization_id,
+                         group_name)
+
+            response = {
+                'completion': completion
+            }
+
+            self.set_header('Content-Type', 'application/json')
+            self.write(json.dumps(response))
+
+        finally:
+            # 在请求处理完成后调用decrement_key_state方法
+            await self.decrement_key_state(group_name, selected_key_index)

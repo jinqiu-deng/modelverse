@@ -10,7 +10,7 @@ async def send_request(url, request_data):
 async def main():
     url = "http://localhost:8080/"
 
-    request_data = {'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': '写唐诗'}]}
+    request_data = {'group_name': 'group_1', 'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': '写唐诗'}]}
 
     tasks = [send_request(url, request_data) for _ in range(2)]
 
