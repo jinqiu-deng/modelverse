@@ -6,6 +6,9 @@ from app.handlers import MainHandler
 from app.logging_config import setup_logging
 from threading import Lock
 import asyncio
+from setproctitle import setproctitle
+
+setproctitle("modelverse_8083")
 
 config = Config(os.path.join(os.path.dirname(__file__), "openai_gpt_key.yaml"))
 key_lock = asyncio.Lock()
@@ -19,5 +22,5 @@ def make_app():
 if __name__ == "__main__":
     setup_logging()  # Sets up logging configuration
     app = make_app()
-    app.listen(8080, address="0.0.0.0")
+    app.listen(8083, address="0.0.0.0")
     tornado.ioloop.IOLoop.current().start()
