@@ -6,13 +6,13 @@ async def send_request(url, request_data):
         async with session.post(url, json=request_data) as response:
             return await response.json()
 
-
 async def main():
-    url = "http://localhost:8080/"
+    #  url = "http://localhost:8080/"
+    url = "http://52.53.130.54:8080/"
 
-    request_data = {'group_name': 'group_1', 'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': '写唐诗'}]}
+    request_data = {'group_name': 'group_2', 'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': '写唐诗'}]}
 
-    tasks = [send_request(url, request_data) for _ in range(2)]
+    tasks = [send_request(url, request_data) for _ in range(20)]
 
     responses = await asyncio.gather(*tasks)
 

@@ -56,8 +56,6 @@ class MainHandler(tornado.web.RequestHandler):
             api_key = selected_group['organizations'][selected_key_index]['key']
             custom_openai_client = CustomOpenAIClient(organization_id, api_key)
 
-        request_body_json = json.loads(self.request.body.decode('utf-8'))
-
         logging.info('Sending question "%s" from %s using org_id %s in group %s',
                      request_body_json,
                      self.request.remote_ip,
