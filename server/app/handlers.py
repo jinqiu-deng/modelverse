@@ -52,14 +52,13 @@ class MainHandler(tornado.web.RequestHandler):
             selected_key_index = min(self.key_state[group_name], key=self.key_state[group_name].get)
             self.key_state[group_name][selected_key_index] += 1
 
-            organization_id = selected_group['organizations'][selected_key_index]['id']
-            api_key = selected_group['organizations'][selected_key_index]['key']
-            custom_openai_client = CustomOpenAIClient(organization_id, api_key)
+            api_key = selected_group['keys'][selected_key_index]['key']
+            custom_openai_client = CustomOpenAIClient(api_key)
 
-        logging.info('Sending question "%s" from %s using org_id %s in group %s',
+        logging.info('Sending question "%s" from %s using key %s in group %s',
                      request_body_json,
                      self.request.remote_ip,
-                     custom_openai_client.organization_id,
+                     selected_key_index,
                      group_name)
 
         try:
@@ -77,11 +76,11 @@ class MainHandler(tornado.web.RequestHandler):
 
             answer = completion['choices'][0]['message']['content']
 
-            logging.info('Generated completion "%s" for question "%s" from %s using org_id %s in group %s',
+            logging.info('Generated completion "%s" for question "%s" from %s using key %s in group %s',
                          completion,
                          request_body_json,
                          self.request.remote_ip,
-                         custom_openai_client.organization_id,
+                         selected_key_index,
                          group_name)
 
             response = {

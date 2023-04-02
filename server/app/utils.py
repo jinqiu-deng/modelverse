@@ -2,15 +2,13 @@ import json
 import aiohttp
 
 class CustomOpenAIClient:
-    def __init__(self, organization_id, api_key):
-        self.organization_id = organization_id
+    def __init__(self, api_key):
         self.api_key = api_key
         self.api_base_url = "https://api.openai.com/v1/chat/completions"
 
     def _get_headers(self):
         headers = {
             "Content-Type": "application/json",
-            "openai-organization": self.organization_id,
             "Authorization": f"Bearer {self.api_key}"
         }
         return headers

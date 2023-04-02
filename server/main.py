@@ -15,7 +15,7 @@ key_lock = asyncio.Lock()
 key_state = {}
 for group in config.settings['groups']:
     group_name = group['name']
-    key_state[group_name] = {i: 0 for i in range(len(group['organizations']))}
+    key_state[group_name] = {i: 0 for i in range(len(group['keys']))}
 
 def make_app():
     return Application([
