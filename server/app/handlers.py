@@ -66,29 +66,39 @@ class MainHandler(tornado.web.RequestHandler):
 
             allowed_properties = {
                 'model', 'messages', 'temperature', 'top_p', 'n', 'max_tokens',
-                'presence_penalty', 'frequency_penalty', 'user', 'logit_bias'
+                'presence_penalty', 'frequency_penalty', 'user', 'logit_bias',
+                'stream'
             }
 
             filtered_request_body_json = {k: v for k, v in request_body_json.items() if k in allowed_properties}
 
-            # Use filtered_request_body_json for further processing
-            completion = await custom_openai_client.create_chat_completion(filtered_request_body_json)
+            # Check if the stream is set to True
+            stream = filtered_request_body_json.get('stream', False)
 
-            answer = completion['choices'][0]['message']['content']
+            if stream:
+                # Use filtered_request_body_json for further processing with streaming
+                async for message in custom_openai_client.create_chat_completion_stream(filtered_request_body_json):
+                    chunk = json.dumps(message)
+                    self.write(chunk)
+                    await self.flush()
+            else:
+                # Use filtered_request_body_json for further processing without streaming
+                completion = await custom_openai_client.create_chat_completion(filtered_request_body_json)
+                answer = completion['choices'][0]['message']['content']
 
-            logging.info('Generated completion "%s" for question "%s" from %s using key %s in group %s',
-                         completion,
-                         request_body_json,
-                         self.request.remote_ip,
-                         selected_key_index,
-                         group_name)
+                logging.info('Generated completion "%s" for question "%s" from %s using key %s in group %s',
+                             completion,
+                             request_body_json,
+                             self.request.remote_ip,
+                             selected_key_index,
+                             group_name)
 
-            response = {
-                'completion': completion
-            }
+                response = {
+                    'completion': completion
+                }
 
-            self.set_header('Content-Type', 'application/json')
-            self.write(json.dumps(response))
+                self.set_header('Content-Type', 'application/json')
+                self.write(json.dumps(response))
 
         finally:
             # 在请求处理完成后调用decrement_key_state方法
