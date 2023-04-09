@@ -69,37 +69,61 @@
 </div>
 
 <script>
-  function submitQuestion() {
-    //const url = "http://localhost:8080";
-    const url = 'http://52.53.130.54:8080'
+  async function submitQuestion() {
+    // const url = 'http://52.53.130.54:8080';
+    const url = 'http://localhost:8080';
 
     const md = new markdownit();
     var inputMessage = document.getElementById("input").value;
-    var inputMessageMD = md.render(inputMessage)
+    var inputMessageMD = md.render(inputMessage);
 
     document.getElementById("question").innerHTML = inputMessageMD;
     document.getElementById("answer").innerHTML = '请耐心等待1分钟，正在思考您的提问：\n' + inputMessageMD;
 
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", url);
-    xhttp.setRequestHeader("Content-Type", "application/json");
-
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        var response = JSON.parse(xhttp.responseText);
-        var completion = response.completion;
-        var content = completion.choices[0].message.content;
-
-        document.getElementById("answer").innerHTML = md.render(content);
-      }
-    };
-
-    var data = JSON.stringify({
-      model: 'gpt-3.5-turbo',
-      group_name: 'group_1',
-      messages: [{role: 'user', content: inputMessage}]
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        group_name: 'group_1',
+        messages: [{ role: 'user', content: inputMessage }],
+        stream: true // Set stream to true
+      })
     });
-    xhttp.send(data);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let firstChunk = true;
+    let answerText = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      let stringWithNewlines = buffer.replace(/\}\{/g, '}\n{');
+      let chunks = stringWithNewlines.split('\n');
+
+      for (let i = 0; i < chunks.length - 1; i++) {
+        const message = JSON.parse(chunks[i]);
+
+        if (message.choices && message.choices[0].delta && message.choices[0].delta.content) {
+          const content = message.choices[0].delta.content;
+          if (content) {
+            if (firstChunk) {
+              firstChunk = false;
+            }
+            answerText += content;
+            document.getElementById("answer").innerHTML = md.render(answerText);
+          }
+        }
+      }
+
+      buffer = chunks[chunks.length - 1];
+    }
   }
 </script>
 

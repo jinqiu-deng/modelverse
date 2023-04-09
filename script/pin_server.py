@@ -14,9 +14,9 @@ async def main():
     url = "http://localhost:8080/"
     # url = "http://52.53.130.54:8080/"
 
-    request_data = {'group_name': 'group_2', 'stream': True, 'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': 'count from 1 to 100'}]}
+    request_data = {'group_name': 'group_2', 'stream': False, 'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': 'count from 1 to 100'}]}
 
-    tasks = [send_request(url, request_data) for _ in range(1)]
+    tasks = [send_request(url, request_data) for _ in range(20)]
 
     await asyncio.gather(*tasks)
 
