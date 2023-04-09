@@ -4,19 +4,20 @@ import aiohttp
 async def send_request(url, request_data):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=request_data) as response:
-            return await response.json()
+            while True:
+                chunk = await response.content.readany()
+                if not chunk:
+                    break
+                print(chunk.decode('utf-8'))
 
 async def main():
-    #  url = "http://localhost:8080/"
-    url = "http://52.53.130.54:8080/"
+    url = "http://localhost:8080/"
+    # url = "http://52.53.130.54:8080/"
 
-    request_data = {'group_name': 'group_2', 'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': '写唐诗'}]}
+    request_data = {'group_name': 'group_2', 'stream': True, 'model': "gpt-3.5-turbo", 'temperature': 1, 'messages': [{'role': "user", 'content': 'count from 1 to 100'}]}
 
-    tasks = [send_request(url, request_data) for _ in range(20)]
+    tasks = [send_request(url, request_data) for _ in range(1)]
 
-    responses = await asyncio.gather(*tasks)
-
-    for i, response in enumerate(responses, 1):
-        print(f"Response {i}: {response}")
+    await asyncio.gather(*tasks)
 
 asyncio.run(main())
