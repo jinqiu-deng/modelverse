@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Chatbot</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@12.2.0/dist/markdown-it.min.js"></script>
+  <script src="/static/script.js"></script>
+</head>
+
+<body>
+  <div class="main-container">
+    <div id="input-container" class="chat-container">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">请输入新的问题:</h3>
+            </div>
+            <div class="panel-body">
+              <div class="form-group">
+                <textarea type="text" class="form-control" rows="3" id="input" name="input"></textarea>
+              </div>
+              <div class="row">
+                <div class="col-sm-12 text-right">
+                  <button class="btn btn-primary" id="submit-btn">提交问题</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrollable-container">
+      <div id="qa-container" class="chat-container"></div>
+    </div>
+  </div>
+</body>
+</html>

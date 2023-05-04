@@ -7,6 +7,7 @@ from app.logging_config import setup_logging
 from threading import Lock
 import asyncio
 from setproctitle import setproctitle
+from tornado.web import StaticFileHandler
 
 setproctitle("modelverse_server")
 
@@ -18,8 +19,11 @@ for group in config.settings['groups']:
     key_state[group_name] = {i: 0 for i in range(len(group['keys']))}
 
 def make_app():
+    static_path = os.path.join(os.path.dirname(__file__), 'templates')
+
     return Application([
         (r"/", MainHandler, dict(config=config, key_lock=key_lock, key_state=key_state)),
+        (r"/static/(.*)", StaticFileHandler, {"path": static_path}),
     ])
 
 if __name__ == "__main__":

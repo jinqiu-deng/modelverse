@@ -24,7 +24,7 @@ class MainHandler(tornado.web.RequestHandler):
 
     def get(self):
         logging.info('Received GET request from %s', self.request.remote_ip)
-        self.render(os.path.join(os.path.dirname(__file__), '..', 'templates', 'chatbot.html'))
+        self.render(os.path.join(os.path.dirname(__file__), '..', 'templates', 'index.html'))
 
 
     async def decrement_key_state(self, group_name, selected_key_index):
