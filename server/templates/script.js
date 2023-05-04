@@ -52,7 +52,8 @@ function displayPreviousQuestionsAndAnswers() {
 
 async function submitQuestion() {
   //const url = 'http://52.53.130.54:8080';
-  const url = 'http://localhost:8080';
+  //const url = 'http://localhost:8080';
+  const url = window.location.href;
 
   displayPreviousQuestionsAndAnswers();
 
