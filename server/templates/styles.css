@@ -69,6 +69,7 @@ body, html {
   color: #ffffff;
   padding: 12px 16px;
   font-weight: 600;
+  width: 70px;
 }
 
 .message-label-answer {
@@ -76,4 +77,5 @@ body, html {
   color: #ffffff;
   padding: 12px 16px;
   font-weight: 600;
+  width: 70px;
 }

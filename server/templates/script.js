@@ -1,5 +1,6 @@
 let previousQuestions = [];
 let previousAnswers = [];
+let previousBot = [];
 let qaPairs = [];
 let answering = false;
 let selectedModel = 'gpt-3.5-turbo'; // 默认选择gpt-3.5-turbo
@@ -41,12 +42,12 @@ function displayPreviousQuestionsAndAnswers() {
   let chatHTML = '';
 
   for (let i = 0; i < previousQuestions.length; i++) {
-    chatHTML += createChatContainer("提问：", md.render(previousQuestions[i]), 'question');
-    chatHTML += createChatContainer("回答：", md.render(previousAnswers[i]), 'answer');
+    chatHTML += createChatContainer("提问", md.render(previousQuestions[i]), 'question');
+    chatHTML += createChatContainer(previousBot[i] + "", md.render(previousAnswers[i]), 'answer');
   }
 
-  chatHTML += createChatContainer("提问：", "<div id='question'></div>", 'question');
-  chatHTML += createChatContainer("回答：", "<div id='answer'>正在思考您的问题请稍等</div>", 'answer');
+  chatHTML += createChatContainer("提问", "<div id='question'></div>", 'question');
+  chatHTML += createChatContainer(selectedModel, "<div id='answer'>正在思考您的问题请稍等</div>", 'answer');
 
   document.getElementById("qa-container").innerHTML = chatHTML;
 }
@@ -121,6 +122,7 @@ async function submitQuestion() {
 
   previousQuestions.push(inputMessage);
   previousAnswers.push(answerText);
+  previousBot.push(selectedModel);
   qaPairs.push({role: 'assistant', content: answerText});
 }
 
