@@ -2,6 +2,7 @@ let previousQuestions = [];
 let previousAnswers = [];
 let qaPairs = [];
 let answering = false;
+let selectedModel = 'gpt-3.5-turbo'; // 默认选择gpt-3.5-turbo
 
 function startQuestion() {
   answering = true;
@@ -70,7 +71,7 @@ async function submitQuestion() {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
+      model: selectedModel,
       group_name: 'default_group',
       messages: qaPairs,
       stream: true // Set stream to true
@@ -128,4 +129,13 @@ window.submitQuestion = submitQuestion;
 window.addEventListener('DOMContentLoaded', (event) => {
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.addEventListener('click', toggleQuestion);
+
+    // 监听模型选择的改变
+    const radioButtons = document.querySelectorAll("input[type=radio][name=chatbot]");
+    radioButtons.forEach(radioButton => {
+      radioButton.addEventListener("change", (event) => {
+        selectedModel = event.target.value;
+        console.log(`Selected model: ${selectedModel}`);
+      });
+    });
 });

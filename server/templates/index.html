@@ -13,7 +13,13 @@
 <body>
   <div class="main-container">
     <div class="header">
-      <h1 class="header-text">gpt-3.5-turbo</h1>
+      <h1 class="header-text">Choose a chatbot:</h1>
+        <form action="">
+            <input type="radio" id="gpt-3.5-turbo" name="chatbot" value="gpt-3.5-turbo" checked>
+            <label for="gpt-3.5-turbo">gpt-3.5-turbo</label><br>
+            <input type="radio" id="gpt-4" name="chatbot" value="gpt-4">
+            <label for="gpt-4">gpt-4</label><br>
+        </form>
     </div>
     <div class="scrollable-container">
       <div id="qa-container" class="chat-container"></div>
