@@ -29,5 +29,5 @@ def make_app():
 if __name__ == "__main__":
     setup_logging()  # Sets up logging configuration
     app = make_app()
-    app.listen(8080, address="0.0.0.0")
+    app.listen(8888, address="0.0.0.0")
     tornado.ioloop.IOLoop.current().start()
